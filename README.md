@@ -67,6 +67,36 @@ frontend/   React single-page app
 backend/    Express REST API
 ```
 
+## API
+
+| Method | Path                          | Description                                     |
+| ------ | ----------------------------- | ----------------------------------------------- |
+| GET    | `/api/health`                 | Liveness check.                                  |
+| GET    | `/api/users/:username`        | Public profile of a GitHub user.                 |
+| GET    | `/api/users/:username/repos`  | Public repositories of a GitHub user.            |
+
+Errors always use the same shape:
+
+```json
+{ "error": { "code": "USER_NOT_FOUND", "message": "GitHub user not found." } }
+```
+
+| Status | Code                   | Meaning                                            |
+| ------ | ---------------------- | -------------------------------------------------- |
+| 400    | `INVALID_USERNAME`     | The username does not match GitHub's rules.         |
+| 403    | `GITHUB_FORBIDDEN`     | GitHub rejected the request for another reason.     |
+| 404    | `USER_NOT_FOUND`       | GitHub has no such user.                            |
+| 429    | `RATE_LIMIT_EXCEEDED`  | GitHub's request rate limit was reached.            |
+| 500    | `INTERNAL_SERVER_ERROR`| Unexpected server error.                            |
+| 502    | `GITHUB_UNAVAILABLE`   | GitHub could not be reached or returned a 5xx.      |
+| 502    | `GITHUB_ERROR`         | GitHub returned an unexpected response.             |
+| 504    | `GITHUB_TIMEOUT`       | GitHub did not respond within 10 seconds.           |
+
+### Current limitations
+
+- The repositories endpoint returns a single page of at most **100 repositories** (GitHub's maximum per page), sorted by most recently updated. Users with more than 100 public repositories are truncated, and frontend pagination is not implemented yet.
+- Without `GITHUB_TOKEN`, GitHub allows only 60 requests per hour per IP address.
+
 ## Note
 
 `CLAUDE.md` is a local development guide and is intentionally excluded from Git.
