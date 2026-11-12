@@ -1,6 +1,15 @@
 import axios, { type AxiosRequestConfig } from 'axios'
 import { ApiError } from '../errors/apiError.js'
-import type { GitHubRepo, GitHubUser, Repository, UserProfile } from '../types/github.js'
+import type {
+  GitHubRepo,
+  GitHubSearchUser,
+  GitHubSearchUsersResponse,
+  GitHubUser,
+  Repository,
+  UserProfile,
+  UserSearchResponse,
+  UserSearchResult,
+} from '../types/github.js'
 
 const DEFAULT_BASE_URL = 'https://api.github.com'
 const REQUEST_TIMEOUT_MS = 10_000
@@ -12,6 +21,12 @@ const REQUEST_TIMEOUT_MS = 10_000
  * of scope for this phase.
  */
 const MAX_REPOS_PER_PAGE = 100
+
+/**
+ * How many search results we ask GitHub for. 30 is GitHub's default page
+ * size for search and keeps the response small enough for a result list.
+ */
+const SEARCH_RESULTS_PER_PAGE = 30
 
 const githubClient = axios.create({
   baseURL: process.env.GITHUB_API_BASE_URL ?? DEFAULT_BASE_URL,
@@ -202,6 +217,17 @@ function toRepository(repo: GitHubRepo): Repository {
   }
 }
 
+/** Converts a raw search entry into the shape the frontend consumes. */
+function toSearchResult(user: GitHubSearchUser): UserSearchResult {
+  return {
+    id: user.id,
+    login: user.login,
+    avatarUrl: user.avatar_url,
+    profileUrl: user.html_url,
+    type: user.type,
+  }
+}
+
 /** Fetches the public profile of a GitHub user. */
 export async function getUserProfile(username: string): Promise<UserProfile> {
   const user = await requestGitHub<GitHubUser>(`/users/${encodeURIComponent(username)}`)
@@ -222,4 +248,25 @@ export async function getRepositories(username: string): Promise<Repository[]> {
   })
 
   return repos.map(toRepository)
+}
+
+/**
+ * Searches GitHub for users and organizations matching the given query.
+ *
+ * GitHub answers a search that matches nothing with `200` and an empty item
+ * list, so an empty result is a normal outcome and not an error.
+ */
+export async function searchUsers(query: string): Promise<UserSearchResponse> {
+  const response = await requestGitHub<GitHubSearchUsersResponse>('/search/users', {
+    params: {
+      q: query,
+      per_page: SEARCH_RESULTS_PER_PAGE,
+    },
+  })
+
+  return {
+    totalCount: response.total_count,
+    incompleteResults: response.incomplete_results,
+    users: response.items.map(toSearchResult),
+  }
 }

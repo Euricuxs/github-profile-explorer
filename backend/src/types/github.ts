@@ -58,6 +58,32 @@ export interface UserProfile {
   createdAt: string
 }
 
+/**
+ * Account kind of a search result. GitHub returns organizations in the same
+ * list as users, and they are worth showing in a search result list.
+ */
+export type GitHubAccountType = 'User' | 'Organization'
+
+/**
+ * Raw `GET /search/users` response. The `items` array holds *reduced* user
+ * objects: they carry an id, a login, an avatar, a profile URL and an account
+ * type, but no bio, follower count and so on.
+ */
+export interface GitHubSearchUsersResponse {
+  total_count: number
+  incomplete_results: boolean
+  items: GitHubSearchUser[]
+}
+
+/** A single raw entry of `GET /search/users`. */
+export interface GitHubSearchUser {
+  id: number
+  login: string
+  avatar_url: string
+  html_url: string
+  type: GitHubAccountType
+}
+
 /** Repository returned by `GET /api/users/:username/repos`. */
 export interface Repository {
   id: number
@@ -73,4 +99,20 @@ export interface Repository {
   topics: string[]
   createdAt: string
   updatedAt: string
+}
+
+/** A single user entry returned by `GET /api/search/users`. */
+export interface UserSearchResult {
+  id: number
+  login: string
+  avatarUrl: string
+  profileUrl: string
+  type: GitHubAccountType
+}
+
+/** Response body of `GET /api/search/users`. */
+export interface UserSearchResponse {
+  totalCount: number
+  incompleteResults: boolean
+  users: UserSearchResult[]
 }

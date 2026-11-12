@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getRepositories, getUserProfile } from './github.service.js'
+import { getRepositories, getUserProfile, searchUsers } from './github.service.js'
 
 /**
  * The service talks to GitHub through an Axios instance it creates itself.
@@ -71,6 +71,27 @@ const githubRepo = {
 /** Builds an error that looks like the ones Axios produces. */
 function axiosError(options: { code?: string; response?: unknown }): Error {
   return new MockAxiosError('Request failed', options)
+}
+
+const githubSearchResponse = {
+  total_count: 2,
+  incomplete_results: false,
+  items: [
+    {
+      id: 583231,
+      login: 'octocat',
+      avatar_url: 'https://avatars.githubusercontent.com/u/583231?v=4',
+      html_url: 'https://github.com/octocat',
+      type: 'User',
+    },
+    {
+      id: 9919,
+      login: 'github',
+      avatar_url: 'https://avatars.githubusercontent.com/u/9919?v=4',
+      html_url: 'https://github.com/github',
+      type: 'Organization',
+    },
+  ],
 }
 
 describe('github.service', () => {
@@ -215,6 +236,103 @@ describe('github.service', () => {
       mockGet.mockResolvedValue({ data: [] })
 
       await expect(getRepositories('octocat')).resolves.toEqual([])
+    })
+  })
+
+  describe('searchUsers', () => {
+    it('requests the search endpoint and normalizes the results', async () => {
+      mockGet.mockResolvedValue({ data: githubSearchResponse })
+
+      const result = await searchUsers('octocat')
+
+      expect(mockGet).toHaveBeenCalledWith(
+        '/search/users',
+        expect.objectContaining({
+          params: { q: 'octocat', per_page: 30 },
+          headers: expect.objectContaining({ Accept: 'application/vnd.github+json' }),
+        }),
+      )
+      expect(result.totalCount).toBe(2)
+      expect(result.incompleteResults).toBe(false)
+      expect(result.users).toHaveLength(2)
+      expect(result.users[0]).toEqual({
+        id: 583231,
+        login: 'octocat',
+        avatarUrl: 'https://avatars.githubusercontent.com/u/583231?v=4',
+        profileUrl: 'https://github.com/octocat',
+        type: 'User',
+      })
+    })
+
+    it('keeps organization results in the response', async () => {
+      mockGet.mockResolvedValue({ data: githubSearchResponse })
+
+      const result = await searchUsers('github')
+
+      expect(result.users[1]).toEqual({
+        id: 9919,
+        login: 'github',
+        avatarUrl: 'https://avatars.githubusercontent.com/u/9919?v=4',
+        profileUrl: 'https://github.com/github',
+        type: 'Organization',
+      })
+    })
+
+    it('passes the incomplete-results flag through', async () => {
+      mockGet.mockResolvedValue({ data: { ...githubSearchResponse, incomplete_results: true } })
+
+      const result = await searchUsers('octocat')
+
+      expect(result.incompleteResults).toBe(true)
+    })
+
+    it('returns an empty list when nothing matches', async () => {
+      mockGet.mockResolvedValue({
+        data: { total_count: 0, incomplete_results: false, items: [] },
+      })
+
+      await expect(searchUsers('nobody')).resolves.toEqual({
+        totalCount: 0,
+        incompleteResults: false,
+        users: [],
+      })
+    })
+
+    it('maps a rate-limited 403 response to RATE_LIMIT_EXCEEDED', async () => {
+      mockGet.mockRejectedValue(
+        axiosError({
+          response: {
+            status: 403,
+            headers: { 'x-ratelimit-remaining': '0' },
+            data: { message: 'API rate limit exceeded' },
+          },
+        }),
+      )
+
+      await expect(searchUsers('octocat')).rejects.toMatchObject({
+        status: 429,
+        code: 'RATE_LIMIT_EXCEEDED',
+      })
+    })
+
+    it('maps an unexpected GitHub response to GITHUB_ERROR', async () => {
+      mockGet.mockRejectedValue(
+        axiosError({ response: { status: 422, headers: {}, data: { message: 'Validation failed' } } }),
+      )
+
+      await expect(searchUsers('octocat')).rejects.toMatchObject({
+        status: 502,
+        code: 'GITHUB_ERROR',
+      })
+    })
+
+    it('maps a timeout to GITHUB_TIMEOUT', async () => {
+      mockGet.mockRejectedValue(axiosError({ code: 'ECONNABORTED' }))
+
+      await expect(searchUsers('octocat')).rejects.toMatchObject({
+        status: 504,
+        code: 'GITHUB_TIMEOUT',
+      })
     })
   })
 })
