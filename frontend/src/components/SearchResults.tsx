@@ -27,7 +27,7 @@ export function SearchResults({ result, query, isFetching }: SearchResultsProps)
           'Results'
         ) : (
           <>
-            {result.totalCount.toLocaleString()} {resultLabel} for &ldquo;{query}&rdquo;
+            {result.totalCount.toLocaleString('en-US')} {resultLabel} for &ldquo;{query}&rdquo;
           </>
         )}
       </h2>
@@ -41,7 +41,7 @@ export function SearchResults({ result, query, isFetching }: SearchResultsProps)
 
       <ul className="mt-4 flex flex-col gap-3">
         {result.users.map((user) => (
-          <UserResultCard key={user.id} user={user} />
+          <UserResultCard key={user.id} user={user} query={query} />
         ))}
       </ul>
     </section>

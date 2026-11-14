@@ -1,6 +1,7 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HomePage } from '../../pages/HomePage'
 import { searchUsers } from '../../api/users'
@@ -27,14 +28,16 @@ const github = {
   type: 'Organization' as const,
 }
 
-function renderHomePage() {
+function renderHomePage(initialEntry = '/') {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <HomePage />
+      <MemoryRouter initialEntries={[initialEntry]}>
+        <HomePage />
+      </MemoryRouter>
     </QueryClientProvider>,
   )
 }
@@ -260,6 +263,48 @@ describe('HomePage', () => {
 
       expect(await screen.findByText(/search for a github developer/i)).toBeInTheDocument()
       expect(screen.queryByText('octocat')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('query parameter', () => {
+    it('fills the search input with the term from the URL', () => {
+      renderHomePage('/?q=octocat')
+
+      expect(screen.getByRole('searchbox')).toHaveValue('octocat')
+    })
+
+    it('searches for the term in the URL when the page loads', async () => {
+      searchUsersMock.mockResolvedValue({
+        totalCount: 1,
+        incompleteResults: false,
+        users: [octocat],
+      })
+
+      renderHomePage('/?q=octocat')
+
+      expect(await screen.findByText('octocat')).toBeInTheDocument()
+      expect(searchUsersMock).toHaveBeenCalledWith('octocat')
+    })
+
+    it('does not search twice for a term that is already in the URL', async () => {
+      vi.useFakeTimers()
+
+      searchUsersMock.mockResolvedValue({
+        totalCount: 1,
+        incompleteResults: false,
+        users: [octocat],
+      })
+
+      renderHomePage('/?q=octocat')
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500)
+      })
+
+      // The debounce reports the term back to the page, but the term is
+      // already in the URL, so no second request is made.
+      expect(searchUsersMock).toHaveBeenCalledTimes(1)
+      expect(searchUsersMock).toHaveBeenCalledWith('octocat')
     })
   })
 })

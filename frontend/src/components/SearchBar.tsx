@@ -5,6 +5,14 @@ const SEARCH_DEBOUNCE_MS = 500
 
 interface SearchBarProps {
   onSearch: (term: string) => void
+  /**
+   * The term the page wants to show in the input.
+   *
+   * It changes when the query in the URL changes, for example after the
+   * browser Back or Forward button was used, or after the user came back
+   * from a profile page.
+   */
+  initialTerm?: string
 }
 
 /**
@@ -16,19 +24,48 @@ interface SearchBarProps {
  * - while typing, a 500 ms debounce triggers the search, so a long query
  *   does not fire one request per keystroke;
  * - pressing Enter or clicking "Search" searches immediately, without
- *   waiting for the debounce;
+ *   waiting for the debounce, and cancels the pending debounce so the same
+ *   term is not searched twice;
  * - clearing the input resets the search, which takes the page back to its
- *   initial state.
+ *   initial state;
+ * - when `initialTerm` changes from the outside (browser Back/Forward), the
+ *   input follows it.
  *
  * The `submitted` ref remembers the term we last handed to the parent. It
  * keeps the reset from firing on the very first render, when the input is
  * empty anyway, and it tells us that emptying the input is a meaningful
  * action rather than a no-op.
+ *
+ * The `reported` ref remembers the term we last reported as well. It tells
+ * our own echo of that term (the URL catching up with what we just sent)
+ * apart from a genuine change coming from the outside, so typing is never
+ * interrupted by the round trip through the URL.
  */
-export function SearchBar({ onSearch }: SearchBarProps) {
-  const [term, setTerm] = useState('')
+export function SearchBar({ onSearch, initialTerm = '' }: SearchBarProps) {
+  const [term, setTerm] = useState(initialTerm)
   const submitted = useRef<string | null>(null)
+  const reported = useRef<string | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const onSearchRef = useRef(onSearch)
+
+  // The callback is kept in a ref so the debounce below is only re-armed
+  // when the typed text changes, and not every time the page re-renders.
+  useEffect(() => {
+    onSearchRef.current = onSearch
+  }, [onSearch])
+
+  // Follow a query that changed outside of this input.
+  useEffect(() => {
+    if (initialTerm !== reported.current) {
+      setTerm(initialTerm)
+    }
+  }, [initialTerm])
+
+  /** Hands a term to the parent and remembers it as the last reported one. */
+  function report(value: string) {
+    reported.current = value
+    onSearchRef.current(value)
+  }
 
   useEffect(() => {
     const trimmed = term.trim()
@@ -36,7 +73,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
     if (trimmed.length === 0) {
       if (submitted.current !== null) {
         submitted.current = null
-        onSearch('')
+        report('')
       }
       return
     }
@@ -44,7 +81,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
     timer.current = setTimeout(() => {
       timer.current = null
       submitted.current = trimmed
-      onSearch(trimmed)
+      report(trimmed)
     }, SEARCH_DEBOUNCE_MS)
 
     return () => {
@@ -53,7 +90,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
         timer.current = null
       }
     }
-  }, [term, onSearch])
+  }, [term])
 
   function handleSubmit(event: ReactSubmitEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -72,7 +109,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
     }
 
     submitted.current = trimmed
-    onSearch(trimmed)
+    report(trimmed)
   }
 
   return (

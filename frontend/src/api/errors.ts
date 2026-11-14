@@ -11,13 +11,17 @@ import axios from 'axios'
  */
 const MESSAGES_BY_CODE: Record<string, string> = {
   INVALID_SEARCH_QUERY: 'That search query is not valid. Please try a different term.',
+  INVALID_USERNAME: 'That is not a valid GitHub username.',
+  USER_NOT_FOUND: 'That GitHub user could not be found. Please check the username.',
   RATE_LIMIT_EXCEEDED: 'GitHub API rate limit exceeded. Please wait a moment and try again.',
   GITHUB_UNAVAILABLE: 'The GitHub API is currently unavailable. Please try again shortly.',
   GITHUB_TIMEOUT: 'The GitHub API did not respond in time. Please try again.',
+  GITHUB_FORBIDDEN: 'The GitHub API rejected this request. Please try again later.',
+  GITHUB_ERROR: 'The GitHub API returned an unexpected response. Please try again.',
   INTERNAL_SERVER_ERROR: 'Something went wrong on the server. Please try again.',
 }
 
-const GENERIC_MESSAGE = 'The search could not be completed. Please try again.'
+const GENERIC_MESSAGE = 'The request could not be completed. Please try again.'
 const OFFLINE_MESSAGE = 'Could not reach the server. Check your connection and try again.'
 
 interface ApiErrorEnvelope {
