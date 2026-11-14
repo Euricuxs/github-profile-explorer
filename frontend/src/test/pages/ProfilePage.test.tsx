@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -194,7 +194,9 @@ describe('ProfilePage', () => {
 
       expect(await screen.findByRole('heading', { name: 'Hello-World' })).toBeInTheDocument()
       expect(screen.getByText('This your first repo!')).toBeInTheDocument()
-      expect(screen.getByText('TypeScript')).toBeInTheDocument()
+      // The language name is shown on the card, in the statistics table and
+      // in the chart legend.
+      expect(screen.getAllByText('TypeScript').length).toBeGreaterThan(0)
       expect(screen.getByText('1,420')).toBeInTheDocument()
       expect(screen.getByText('35')).toBeInTheDocument()
       expect(screen.getByText(/updated .*2024/i)).toBeInTheDocument()
@@ -271,6 +273,41 @@ describe('ProfilePage', () => {
 
       expect(await screen.findByText('100 repositories shown')).toBeInTheDocument()
       expect(screen.getByText(/at most 100 repositories per request/i)).toBeInTheDocument()
+    })
+  })
+
+  describe('language statistics', () => {
+    it('shows the language, the count and the percentage of every language', async () => {
+      renderProfilePage()
+
+      expect(await screen.findByRole('heading', { name: 'Language statistics' })).toBeInTheDocument()
+
+      const row = screen.getByRole('row', { name: /TypeScript/ })
+
+      expect(within(row).getByText('1')).toBeInTheDocument()
+      expect(within(row).getByText('100%')).toBeInTheDocument()
+    })
+
+    it('shows the distribution of the languages', async () => {
+      renderProfilePage()
+
+      expect(await screen.findByRole('heading', { name: 'Language distribution' })).toBeInTheDocument()
+      expect(screen.getByRole('img', { name: /language distribution/i })).toBeInTheDocument()
+    })
+
+    it('states that the figures cover the repositories of the backend', async () => {
+      renderProfilePage()
+
+      expect(await screen.findByText(/figures cover the/i)).toBeInTheDocument()
+    })
+
+    it('does not show the statistics when the account has no repositories', async () => {
+      getUserRepositoriesMock.mockResolvedValue([])
+
+      renderProfilePage()
+
+      expect(await screen.findByText(/no public repositories/i)).toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Language statistics' })).not.toBeInTheDocument()
     })
   })
 

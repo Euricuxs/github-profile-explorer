@@ -65,3 +65,23 @@ export interface Repository {
   createdAt: string
   updatedAt: string
 }
+
+/**
+ * The ways the repository list can be ordered.
+ *
+ * `updated` is the default because that is the order the GitHub API itself
+ * returns: the most recently touched repositories first.
+ */
+export type RepositorySort = 'updated' | 'stars'
+
+/**
+ * How many repositories one language has, and which share of the list that is.
+ *
+ * The percentage is a rounded display value. Calculations that need the exact
+ * share (the chart geometry) use the raw count instead.
+ */
+export interface LanguageStat {
+  language: string
+  count: number
+  percentage: number
+}

@@ -39,6 +39,19 @@ export function RepositoriesEmptyState() {
   )
 }
 
+/** Shown when the account has repositories, but none in the chosen language. */
+export function RepositoriesFilteredEmptyState() {
+  return (
+    <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
+      <p className="text-base font-medium text-slate-900">No matching repositories</p>
+      <p className="mt-1 text-sm text-slate-600">
+        None of the repositories of this account use the selected language. Choose another
+        language to see the rest.
+      </p>
+    </div>
+  )
+}
+
 /**
  * The shared shape of the two error boxes. The title says which part of the
  * page failed, so the user knows whether the profile or the list is missing.
