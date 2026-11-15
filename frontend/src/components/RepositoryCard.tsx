@@ -22,7 +22,7 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
             href={repository.url}
             target="_blank"
             rel="noreferrer"
-            className="underline underline-offset-4 hover:text-slate-600"
+            className="focus-ring rounded-sm underline underline-offset-4 hover:text-slate-600"
           >
             {repository.name}
           </a>
@@ -47,7 +47,24 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
         </span>
 
         <span className="inline-flex items-center gap-1">
-          <span aria-hidden="true">⑂</span>
+          {/* The fork symbol of the Unicode standard is missing from many
+              system fonts, and it shows up as an empty box. A small drawing
+              of the same shape is always the same. */}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            className="h-3 w-3 shrink-0"
+          >
+            <circle cx="4" cy="4" r="1.9" />
+            <circle cx="4" cy="12" r="1.9" />
+            <circle cx="12" cy="4" r="1.9" />
+            <path d="M4 5.9v4.2" />
+            <path d="M12 5.9v1.2a2 2 0 0 1-2 2H4" />
+          </svg>
           <span className="sr-only">Forks:</span>
           {repository.forksCount.toLocaleString('en-US')}
         </span>

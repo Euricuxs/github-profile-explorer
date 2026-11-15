@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+/*
+ * The focus indicator of the application.
+ *
+ * Every interactive element carries the `focus-ring` class. The native
+ * outline is removed and replaced by a two-pixel outline in the darkest
+ * colour of the palette:
+ *
+ * - the native outline is drawn in a colour that is easy to miss, and it is
+ *   drawn *inside* the border, where it is easy to lose against a coloured
+ *   background;
+ * - the replacement is `rgb(15, 23, 42)`, which has a contrast ratio of
+ *   about 17.8:1 against the white page. WCAG 2.2 asks for 3:1 for a focus
+ *   indicator, so the replacement is far above the requirement.
+ *
+ * `:focus-visible` is used instead of `:focus`, so the indicator appears
+ * when the user moves through the page with the keyboard and stays away
+ * after a mouse click. The browser makes one exception on its own: a text
+ * field always matches `:focus-visible`, because the user has to see where
+ * they are typing.
+ *
+ * The indicator is drawn with the CSS `outline` property and not with a
+ * shadow. An outline is never clipped by an ancestor, it does not take up
+ * space, and it follows the colours of the operating system when the user
+ * turns on a high-contrast theme.
+ */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-slate-900);
+  outline-offset: 2px;
+}

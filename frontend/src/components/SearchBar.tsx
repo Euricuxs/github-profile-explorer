@@ -126,12 +126,12 @@ export function SearchBar({ onSearch, initialTerm = '' }: SearchBarProps) {
         onChange={(event) => setTerm(event.target.value)}
         placeholder="Search GitHub users, e.g. octocat"
         autoComplete="off"
-        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+        className="focus-ring w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm transition placeholder:text-slate-500 focus:border-slate-900"
       />
 
       <button
         type="submit"
-        className="shrink-0 rounded-lg bg-slate-900 px-5 py-2.5 font-medium text-white shadow-sm transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900/30 focus:ring-offset-2"
+        className="focus-ring shrink-0 rounded-lg bg-slate-900 px-5 py-2.5 font-medium text-white shadow-sm transition hover:bg-slate-700"
       >
         Search
       </button>

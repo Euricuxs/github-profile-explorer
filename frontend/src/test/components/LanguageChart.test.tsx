@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { LanguageChart } from '../../components/LanguageChart'
 import { LanguageStats } from '../../components/LanguageStats'
 import {
+  CHART_CORNER_RADIUS,
   CHART_OTHER_COLOR,
   CHART_SEGMENT_GAP,
+  CHART_VIEWBOX_HEIGHT,
   CHART_VIEWBOX_WIDTH,
 } from '../../utils/languageChart'
 import { calculateLanguageStats } from '../../utils/repositories'
@@ -110,6 +112,36 @@ describe('LanguageChart', () => {
 
     expect(screen.getByText(/no language data to show/i)).toBeInTheDocument()
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  })
+
+  describe('the shape of the drawing area', () => {
+    it('keeps the ratio of the drawing area, so the bar is never stretched', () => {
+      render(<LanguageChart stats={stats} />)
+
+      const chart = screen.getByRole('img', { name: /language distribution/i })
+
+      expect(chart.getAttribute('viewBox')).toBe(`0 0 ${CHART_VIEWBOX_WIDTH} ${CHART_VIEWBOX_HEIGHT}`)
+      // Stretching in one direction only would turn the rounded corners of
+      // the slices into ellipses.
+      expect(chart.getAttribute('preserveAspectRatio')).toBe('xMidYMid meet')
+      expect(chart.style.aspectRatio).toBe(`${CHART_VIEWBOX_WIDTH} / ${CHART_VIEWBOX_HEIGHT}`)
+    })
+
+    it('rounds the corners of every slice', () => {
+      const { container } = render(<LanguageChart stats={stats} />)
+
+      for (const rect of container.querySelectorAll('rect')) {
+        expect(rect.getAttribute('rx')).toBe(String(CHART_CORNER_RADIUS))
+      }
+    })
+
+    it('gives every slice the full height of the drawing area', () => {
+      const { container } = render(<LanguageChart stats={stats} />)
+
+      for (const rect of container.querySelectorAll('rect')) {
+        expect(rect.getAttribute('height')).toBe(String(CHART_VIEWBOX_HEIGHT))
+      }
+    })
   })
 })
 

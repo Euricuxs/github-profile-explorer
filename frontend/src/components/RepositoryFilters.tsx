@@ -34,7 +34,7 @@ export function RepositoryFilters({
           id="language-filter"
           value={language}
           onChange={(event) => onLanguageChange(event.target.value)}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+          className="focus-ring rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-slate-900"
         >
           <option value={ALL_LANGUAGES}>All Languages</option>
 
@@ -55,7 +55,7 @@ export function RepositoryFilters({
           id="sort-order"
           value={sort}
           onChange={(event) => onSortChange(event.target.value)}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+          className="focus-ring rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition focus:border-slate-900"
         >
           <option value="updated">Recently Updated</option>
           <option value="stars">Most Stars</option>

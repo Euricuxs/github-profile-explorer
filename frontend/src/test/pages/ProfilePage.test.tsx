@@ -186,6 +186,47 @@ describe('ProfilePage', () => {
       expect(screen.getByText(/could not be found/i)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
     })
+
+    it('gives the error state a heading of its own', async () => {
+      getUserProfileMock.mockRejectedValue({
+        isAxiosError: true,
+        response: {
+          status: 404,
+          data: { error: { code: 'USER_NOT_FOUND', message: 'GitHub user not found.' } },
+        },
+      })
+
+      renderProfilePage()
+
+      expect(
+        await screen.findByRole('heading', { level: 1, name: /profile could not be loaded/i }),
+      ).toBeInTheDocument()
+    })
+
+    it('shows one error box and not two when the account does not exist', async () => {
+      const notFound = {
+        isAxiosError: true,
+        response: {
+          status: 404,
+          data: { error: { code: 'USER_NOT_FOUND', message: 'GitHub user not found.' } },
+        },
+      }
+
+      getUserProfileMock.mockRejectedValue(notFound)
+      getUserRepositoriesMock.mockRejectedValue(notFound)
+
+      renderProfilePage()
+
+      expect(await screen.findByText(/profile could not be loaded/i)).toBeInTheDocument()
+      expect(screen.queryByText(/repositories could not be loaded/i)).not.toBeInTheDocument()
+    })
+
+    it('gives the page a title of its own', async () => {
+      renderProfilePage()
+
+      expect(await screen.findByRole('heading', { name: 'The Octocat' })).toBeInTheDocument()
+      expect(document.title).toBe('The Octocat · GitHub Profile Explorer')
+    })
   })
 
   describe('successful repositories', () => {

@@ -41,8 +41,25 @@ export const CHART_OTHER_COLOR = '#c3c2b7'
 /** The width of the drawing area of the chart, in SVG units. */
 export const CHART_VIEWBOX_WIDTH = 1000
 
-/** The height of the bar, in SVG units. */
-export const CHART_VIEWBOX_HEIGHT = 16
+/**
+ * The height of the bar, in SVG units.
+ *
+ * The number is a design choice, not a free parameter: together with the
+ * width it decides the shape of the bar. The drawing area is scaled to the
+ * width of the page and never stretched in one direction only, so this ratio
+ * is the ratio of the bar on the screen as well. A bar that is 22 units
+ * high in a drawing area of 1000 units is about 16 pixels high on a wide
+ * screen and about 7 pixels high on a narrow one.
+ */
+export const CHART_VIEWBOX_HEIGHT = 22
+
+/**
+ * The radius of the rounded corners of a slice, in SVG units.
+ *
+ * Because the whole drawing area is scaled in the same way in both
+ * directions, the corners stay round at every width.
+ */
+export const CHART_CORNER_RADIUS = 4
 
 /**
  * The empty space between two slices, in SVG units.

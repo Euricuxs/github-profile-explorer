@@ -20,7 +20,7 @@ export function RepositoryPagination({ page, totalPages, onPageChange }: Reposit
         type="button"
         onClick={() => onPageChange(page - 1)}
         disabled={isFirstPage}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-900/20 disabled:cursor-not-allowed disabled:opacity-50"
+        className="focus-ring rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
       >
         Previous
       </button>
@@ -33,7 +33,7 @@ export function RepositoryPagination({ page, totalPages, onPageChange }: Reposit
         type="button"
         onClick={() => onPageChange(page + 1)}
         disabled={isLastPage}
-        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-900/20 disabled:cursor-not-allowed disabled:opacity-50"
+        className="focus-ring rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
       >
         Next
       </button>

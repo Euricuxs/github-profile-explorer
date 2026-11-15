@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 /**
  * The states of the profile page that are not content.
  *
@@ -61,19 +63,19 @@ function ErrorBox({
   message,
   onRetry,
 }: {
-  title: string
+  title: ReactNode
   message: string
   onRetry: () => void
 }) {
   return (
     <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-6 py-8 text-center">
-      <p className="text-base font-medium text-red-900">{title}</p>
+      {title}
       <p className="mt-1 text-sm text-red-800">{message}</p>
 
       <button
         type="button"
         onClick={onRetry}
-        className="mt-4 rounded-lg bg-red-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-900/30 focus:ring-offset-2"
+        className="focus-ring mt-4 rounded-lg bg-red-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-800"
       >
         Try again
       </button>
@@ -81,9 +83,21 @@ function ErrorBox({
   )
 }
 
-/** Shown when the profile request failed. */
+/**
+ * Shown when the profile request failed.
+ *
+ * The title is the heading of the page: without it, the page would start at
+ * the "Repositories" heading, and a document has to start at its first
+ * level.
+ */
 export function ProfileErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return <ErrorBox title="Profile could not be loaded" message={message} onRetry={onRetry} />
+  return (
+    <ErrorBox
+      title={<h1 className="text-base font-medium text-red-900">Profile could not be loaded</h1>}
+      message={message}
+      onRetry={onRetry}
+    />
+  )
 }
 
 /** Shown when the repository request failed. */
@@ -95,6 +109,10 @@ export function RepositoriesErrorState({
   onRetry: () => void
 }) {
   return (
-    <ErrorBox title="Repositories could not be loaded" message={message} onRetry={onRetry} />
+    <ErrorBox
+      title={<p className="text-base font-medium text-red-900">Repositories could not be loaded</p>}
+      message={message}
+      onRetry={onRetry}
+    />
   )
 }

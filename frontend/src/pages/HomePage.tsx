@@ -3,7 +3,11 @@ import { SearchBar } from '../components/SearchBar'
 import { SearchResults } from '../components/SearchResults'
 import { EmptyState, ErrorState, InitialState, LoadingState } from '../components/SearchStates'
 import { getErrorMessage } from '../api/errors'
+import { usePageMeta } from '../hooks/usePageMeta'
 import { useUserSearch } from '../hooks/useUserSearch'
+
+const PAGE_DESCRIPTION =
+  'Search GitHub developers and explore their public profiles, repositories, and language statistics.'
 
 /**
  * The search page.
@@ -17,13 +21,40 @@ export function HomePage() {
   const navigate = useNavigate()
 
   const query = searchParams.get('q') ?? ''
-  const { data, error, isError, isPending, isFetching, refetch } = useUserSearch(query)
 
-  const hasSearched = query.length > 0
+  // The trimmed term is the one and only definition of "a search happened".
+  // The page and the hook have to agree on it: when they disagree, a term
+  // that is only whitespace leaves the page waiting for a request that is
+  // never sent.
+  const term = query.trim()
+
+  const { data, error, isError, isPending, isFetching, refetch } = useUserSearch(term)
+
+  const hasSearched = term.length > 0
   // The first load has no previous results to keep on screen, so it gets the
   // full loading state. Every later load keeps the old results visible and
   // only adds the small "Searching…" indicator.
   const isRefetching = isFetching && !isPending
+
+  usePageMeta({
+    title: hasSearched ? `${term} · GitHub Profile Explorer` : 'GitHub Profile Explorer',
+    description: PAGE_DESCRIPTION,
+  })
+
+  /**
+   * The number of results, as it is announced to a screen reader.
+   *
+   * The count is also written in the heading of the result list, but a
+   * heading is only read when the user reaches it. This text changes on its
+   * own when the results arrive, so the user is told that something
+   * happened.
+   */
+  const resultAnnouncement =
+    hasSearched && !isError && !isPending && !isRefetching && data
+      ? `${data.totalCount.toLocaleString('en-US')} ${
+          data.totalCount === 1 ? 'result' : 'results'
+        } found for ${term}`
+      : ''
 
   /**
    * Puts a term in the URL.
@@ -33,37 +64,37 @@ export function HomePage() {
    * replacement keeps the browser history clean: typing does not add an
    * entry per keystroke.
    */
-  function handleSearch(term: string) {
+  function handleSearch(value: string) {
     const current = searchParams.get('q') ?? ''
 
-    if (term === current) {
+    if (value === current) {
       return
     }
 
-    navigate(term.length > 0 ? `/?q=${encodeURIComponent(term)}` : '/', { replace: true })
+    navigate(value.length > 0 ? `/?q=${encodeURIComponent(value)}` : '/', { replace: true })
   }
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <header>
         <h1 className="text-3xl font-bold text-slate-900">GitHub Profile Explorer</h1>
-        <p className="mt-2 text-slate-600">
-          Search GitHub developers and explore their profiles, repositories, and language
-          statistics.
-        </p>
+        <p className="mt-2 text-slate-600">{PAGE_DESCRIPTION}</p>
       </header>
 
       <div className="mt-8">
-        <SearchBar initialTerm={query} onSearch={handleSearch} />
+        <SearchBar initialTerm={term} onSearch={handleSearch} />
       </div>
 
-      <div aria-live="polite" className="mt-4 min-h-6">
-        {hasSearched && isRefetching ? (
-          <p role="status" className="text-sm text-slate-500">
-            Searching&hellip;
-          </p>
-        ) : null}
-      </div>
+      {/* The two status regions are always rendered, so a screen reader is
+          already watching them when their text changes. The first one
+          follows the request, the second one announces the result count. */}
+      <p role="status" className="mt-4 min-h-6 text-sm text-slate-500">
+        {isRefetching ? 'Searching…' : ''}
+      </p>
+
+      <p role="status" className="sr-only">
+        {resultAnnouncement}
+      </p>
 
       <div className="mt-4">
         {!hasSearched ? <InitialState /> : null}
@@ -75,11 +106,11 @@ export function HomePage() {
         {hasSearched && !isError && isPending ? <LoadingState /> : null}
 
         {hasSearched && !isError && !isPending && data && data.users.length > 0 ? (
-          <SearchResults result={data} query={query} isFetching={isRefetching} />
+          <SearchResults result={data} query={term} isFetching={isRefetching} />
         ) : null}
 
         {hasSearched && !isError && !isPending && data?.users.length === 0 && !isRefetching ? (
-          <EmptyState query={query} />
+          <EmptyState query={term} />
         ) : null}
       </div>
     </main>

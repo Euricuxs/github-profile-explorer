@@ -306,5 +306,54 @@ describe('HomePage', () => {
       expect(searchUsersMock).toHaveBeenCalledTimes(1)
       expect(searchUsersMock).toHaveBeenCalledWith('octocat')
     })
+
+    it('shows the initial state for a query that is only whitespace', () => {
+      renderHomePage('/?q=%20%20')
+
+      // The page must not wait for a request that is never sent.
+      expect(screen.getByText(/search for a github developer/i)).toBeInTheDocument()
+      expect(screen.queryByText(/loading results/i)).not.toBeInTheDocument()
+      expect(searchUsersMock).not.toHaveBeenCalled()
+    })
+
+    it('gives the page a title of its own', () => {
+      renderHomePage('/?q=octocat')
+
+      expect(document.title).toBe('octocat · GitHub Profile Explorer')
+    })
+  })
+
+  describe('status announcements', () => {
+    it('announces the number of results when they arrive', async () => {
+      searchUsersMock.mockResolvedValue({
+        totalCount: 42,
+        incompleteResults: false,
+        users: [octocat],
+      })
+
+      renderHomePage('/?q=octocat')
+
+      expect(await screen.findByText(/42 results found for octocat/i)).toBeInTheDocument()
+    })
+
+    it('announces the number of results in the singular', async () => {
+      searchUsersMock.mockResolvedValue({
+        totalCount: 1,
+        incompleteResults: false,
+        users: [octocat],
+      })
+
+      renderHomePage('/?q=octocat')
+
+      expect(await screen.findByText(/1 result found for octocat/i)).toBeInTheDocument()
+    })
+
+    it('announces nothing when there is no search', () => {
+      renderHomePage()
+
+      for (const status of screen.getAllByRole('status')) {
+        expect(status).toHaveTextContent('')
+      }
+    })
   })
 })

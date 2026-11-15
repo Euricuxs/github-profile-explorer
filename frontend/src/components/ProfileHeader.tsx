@@ -1,3 +1,4 @@
+import { Avatar } from './Avatar'
 import { ProfileStats } from './ProfileStats'
 import type { UserProfile } from '../types/user'
 
@@ -15,7 +16,7 @@ export function ProfileHeader({ profile }: { profile: UserProfile }) {
       className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-        <img
+        <Avatar
           src={profile.avatarUrl}
           alt={`${profile.login} avatar`}
           width={96}
@@ -54,7 +55,7 @@ export function ProfileHeader({ profile }: { profile: UserProfile }) {
                     href={profile.blog}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-slate-900 underline underline-offset-4 hover:text-slate-600"
+                    className="focus-ring rounded-sm text-slate-900 underline underline-offset-4 hover:text-slate-600"
                   >
                     {profile.blog}
                   </a>
@@ -76,7 +77,7 @@ export function ProfileHeader({ profile }: { profile: UserProfile }) {
         target="_blank"
         rel="noreferrer"
         aria-label={`View ${profile.login} on GitHub`}
-        className="mt-6 inline-block rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-900 transition hover:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+        className="focus-ring mt-6 inline-block rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-900 transition hover:border-slate-900"
       >
         View on GitHub
       </a>

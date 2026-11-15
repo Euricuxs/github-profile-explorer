@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { Avatar } from './Avatar'
 import type { UserSearchResult } from '../types/user'
 
 interface UserResultCardProps {
@@ -20,9 +21,9 @@ export function UserResultCard({ user, query }: UserResultCardProps) {
       <Link
         to={`/users/${encodeURIComponent(user.login)}?q=${encodeURIComponent(query)}`}
         aria-label={`View ${user.login}'s profile`}
-        className="flex min-w-0 items-center gap-4 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+        className="focus-ring flex min-w-0 items-center gap-4 rounded-sm"
       >
-        <img
+        <Avatar
           src={user.avatarUrl}
           alt={`${user.login} avatar`}
           width={48}
@@ -45,7 +46,7 @@ export function UserResultCard({ user, query }: UserResultCardProps) {
         target="_blank"
         rel="noreferrer"
         aria-label={`View profile of ${user.login} on GitHub`}
-        className="ml-auto shrink-0 text-sm font-medium text-slate-900 underline underline-offset-4 hover:text-slate-600"
+        className="focus-ring ml-auto shrink-0 rounded-sm text-sm font-medium text-slate-900 underline underline-offset-4 hover:text-slate-600"
       >
         View profile
       </a>

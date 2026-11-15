@@ -10,6 +10,7 @@ import {
   RepositoriesLoadingState,
 } from '../components/ProfileStates'
 import { getErrorMessage } from '../api/errors'
+import { usePageMeta } from '../hooks/usePageMeta'
 import { useUserProfile } from '../hooks/useUserProfile'
 import { useUserRepositories } from '../hooks/useUserRepositories'
 import { calculateLanguageStats } from '../utils/repositories'
@@ -37,11 +38,25 @@ export function ProfilePage() {
   const repositories = repositoriesQuery.data
   const languageStats = repositories ? calculateLanguageStats(repositories) : []
 
+  // When the profile itself cannot be loaded, the account most likely does
+  // not exist. The repository request fails for the same reason, so showing
+  // its error as well would repeat the same message twice.
+  const profileFailed = profile.isError
+
+  usePageMeta({
+    title: profile.data
+      ? `${profile.data.name ?? profile.data.login} · GitHub Profile Explorer`
+      : 'GitHub Profile Explorer',
+    description:
+      profile.data?.bio ??
+      `Public profile, repositories and language statistics of ${username} on GitHub.`,
+  })
+
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <Link
         to={backToSearch}
-        className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 underline underline-offset-4 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+        className="focus-ring inline-flex items-center gap-2 text-sm font-medium text-slate-600 underline underline-offset-4 hover:text-slate-900"
       >
         <span aria-hidden="true">←</span> Back to Search
       </Link>
@@ -59,24 +74,26 @@ export function ProfilePage() {
         {profile.data ? <ProfileHeader profile={profile.data} /> : null}
       </div>
 
-      <section aria-labelledby="repositories-heading" className="mt-10">
-        <h2 id="repositories-heading" className="text-lg font-bold text-slate-900">
-          Repositories
-        </h2>
+      {profileFailed ? null : (
+        <section aria-labelledby="repositories-heading" className="mt-10">
+          <h2 id="repositories-heading" className="text-lg font-bold text-slate-900">
+            Repositories
+          </h2>
 
-        <div className="mt-4">
-          {repositoriesQuery.isPending ? <RepositoriesLoadingState /> : null}
+          <div className="mt-4">
+            {repositoriesQuery.isPending ? <RepositoriesLoadingState /> : null}
 
-          {repositoriesQuery.isError ? (
-            <RepositoriesErrorState
-              message={getErrorMessage(repositoriesQuery.error)}
-              onRetry={() => void repositoriesQuery.refetch()}
-            />
-          ) : null}
+            {repositoriesQuery.isError ? (
+              <RepositoriesErrorState
+                message={getErrorMessage(repositoriesQuery.error)}
+                onRetry={() => void repositoriesQuery.refetch()}
+              />
+            ) : null}
 
-          {repositories ? <RepositoryExplorer repositories={repositories} /> : null}
-        </div>
-      </section>
+            {repositories ? <RepositoryExplorer repositories={repositories} /> : null}
+          </div>
+        </section>
+      )}
 
       {repositories && repositories.length > 0 ? (
         <section aria-labelledby="languages-heading" className="mt-10">

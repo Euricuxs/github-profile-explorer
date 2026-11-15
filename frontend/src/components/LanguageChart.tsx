@@ -1,4 +1,5 @@
 import {
+  CHART_CORNER_RADIUS,
   CHART_VIEWBOX_HEIGHT,
   CHART_VIEWBOX_WIDTH,
   buildLanguageSegments,
@@ -20,6 +21,11 @@ interface LanguageChartProps {
  * The widths come from the raw repository counts, and the gaps between the
  * rectangles are taken out of the available width first, so the bar fills the
  * drawing area exactly and never spills out of it.
+ *
+ * The drawing area keeps its own shape: the SVG is given the ratio of the
+ * drawing area, and the browser scales it in the same way in both
+ * directions. Stretching it in one direction only would turn the rounded
+ * corners of the slices into ellipses.
  */
 export function LanguageChart({ stats }: LanguageChartProps) {
   if (stats.length === 0) {
@@ -40,10 +46,14 @@ export function LanguageChart({ stats }: LanguageChartProps) {
     <div>
       <svg
         viewBox={`0 0 ${CHART_VIEWBOX_WIDTH} ${CHART_VIEWBOX_HEIGHT}`}
-        preserveAspectRatio="none"
+        preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-label={`Language distribution of the ${total} repositories returned by the backend. ${summary}`}
-        className="h-4 w-full"
+        className="block w-full"
+        style={{
+          aspectRatio: `${CHART_VIEWBOX_WIDTH} / ${CHART_VIEWBOX_HEIGHT}`,
+          height: 'auto',
+        }}
       >
         {geometry.map(({ segment, x, width }) => (
           <rect
@@ -53,7 +63,7 @@ export function LanguageChart({ stats }: LanguageChartProps) {
             width={width}
             height={CHART_VIEWBOX_HEIGHT}
             fill={segment.color}
-            rx={3}
+            rx={CHART_CORNER_RADIUS}
           >
             <title>
               {`${segment.label} — ${segment.count} ${segment.count === 1 ? 'repository' : 'repositories'}, ${segment.percentage}%`}

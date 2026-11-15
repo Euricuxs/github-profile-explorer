@@ -19,10 +19,21 @@ const MESSAGES_BY_CODE: Record<string, string> = {
   GITHUB_FORBIDDEN: 'The GitHub API rejected this request. Please try again later.',
   GITHUB_ERROR: 'The GitHub API returned an unexpected response. Please try again.',
   INTERNAL_SERVER_ERROR: 'Something went wrong on the server. Please try again.',
+  NOT_FOUND: 'That endpoint could not be found.',
 }
 
 const GENERIC_MESSAGE = 'The request could not be completed. Please try again.'
 const OFFLINE_MESSAGE = 'Could not reach the server. Check your connection and try again.'
+const TIMEOUT_MESSAGE = 'The request took too long. Please try again.'
+
+/**
+ * The codes Axios and Node use for a request that ran out of time.
+ *
+ * Axios reports its own timeout as `ECONNABORTED`, and a socket timeout of
+ * the runtime underneath it arrives as `ETIMEDOUT`. Both mean the same thing
+ * to the user, so both get the same message.
+ */
+const TIMEOUT_CODES = new Set(['ECONNABORTED', 'ETIMEDOUT'])
 
 interface ApiErrorEnvelope {
   error: { code: string; message: string }
@@ -51,7 +62,14 @@ export function getErrorMessage(error: unknown): string {
     return MESSAGES_BY_CODE[body.error.code] ?? GENERIC_MESSAGE
   }
 
-  // No response at all means the request never reached the server.
+  // No response at all means the request never reached the server. A
+  // timeout is checked first, because a timeout also has no response, and
+  // "the server cannot be reached" would send the user looking at their
+  // connection when the connection was fine.
+  if (error.code !== undefined && TIMEOUT_CODES.has(error.code)) {
+    return TIMEOUT_MESSAGE
+  }
+
   if (error.response === undefined) {
     return OFFLINE_MESSAGE
   }
