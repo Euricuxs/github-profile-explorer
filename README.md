@@ -388,6 +388,3 @@ dependent only on the previous ones.
 - **GitHub's search API has a much stricter rate limit than the rest of the REST API: 10 requests per minute unauthenticated, and 30 requests per minute with a token.** The other endpoints are limited by the hourly 60/5000 requests instead. A frontend search box therefore has to debounce its requests, otherwise a user typing a term will exhaust the search quota in seconds.
 - The application is not deployed. The screenshots in this README were taken from the local development server.
 
-## Note
-
-`CLAUDE.md` is a local development guide and is intentionally excluded from Git.
